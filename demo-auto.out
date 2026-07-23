@@ -1,0 +1,276 @@
+################################################################
+# Running auto onlinedemo EvaalaAPI demo
+################################################################
+
+Let's start by reloading it to be sure.
+Will get an error if we work with a scoring (non-reloadable) trial which had already been run
+
+
+==>  GET https://evaal.aaloa.org/evaalapi/onlinedemo/reload --> 200
+0.000,-1.000,3.000,15.000,0.000,0.000,0.000,10.422057;43.718278;1
+
+First, check the state of the trial
+
+==>  GET https://evaal.aaloa.org/evaalapi/onlinedemo/state --> 200
+0.000,-1.000,3.000,15.000,0.000,0.000,0.000,10.422057;43.718278;1
+
+The return code is the trial state, whose meaning is:
+{'trialts': 0.0, 'rem': -1.0, 'V': 3.0, 'S': 15.0, 'p': 0.0, 'h': 0.0, 'pts': 0.0, 'pos': '10.422057;43.718278;1'}
+'trialts' is 0, because the trial has not started, and in fact
+'rem' is -1, meaning that the trial has not started yet and
+'pos' is set to the initial position
+
+Trial not started
+Waiting for 10.0s...
+
+This is the first data we request, and we are at the start of trial,
+where the position is known, so we do not bother sending a position estimate
+and moreover we ask for a longer-than-usual horizon, that is, 1s
+
+==>  GET https://evaal.aaloa.org/evaalapi/onlinedemo/nextdata?horizon=1 --> 200
+ACCE;0.015;17287.341;-2.64559;8.69813;2.78446;3
+GYRO;0.016;17287.337;0.27428;-1.10933;-0.18998;3
+   ... ___618 lines omitted___ ...   
+ACCE;1.012;17288.354;10.21366;9.79707;10.38605;3
+GYRO;1.013;17288.350;-1.19546;-0.57421;0.43982;3
+
+Trial running, 17.936 seconds to timeout
+Waiting for 10.0s...
+
+You can freely intermix "state" requests with the flow of "nextdata"
+requests.  This may be useful for consistency check, including timeout checks.  This is
+possible by looking at the state of the trial:
+
+==>  GET https://evaal.aaloa.org/evaalapi/onlinedemo/state --> 200
+1.015,7.880,3.000,15.000,1693924521.330,1.000,0.015,10.422057;43.718278;1
+
+The return code is the trial state, whose meaning is:
+{'trialts': 1.015, 'rem': 7.88, 'V': 3.0, 'S': 15.0, 'p': 1693924521.33, 'h': 1.0, 'pts': 0.015, 'pos': '10.422057;43.718278;1'}
+'trialts' is the trial timestamp
+'rem' is the remaining time until timeout
+
+Trial running, 7.828 seconds to timeout
+Waiting for 0.3s...
+
+From now on we keep sending an estimate and ask for new data
+in steps of 0.5s.  Since this is the default horizon, we do not set horizon
+explicitly in the request, but we only set the estimated position.
+Note that the positions are just arbitrary numbers in this demo.
+
+==>  GET https://evaal.aaloa.org/evaalapi/onlinedemo/nextdata?position=1.1,1.2,1.3 --> 200
+MAGN;1.017;17288.355;-1.50000;-18.30000;-47.10000;3
+GYRO;1.020;17288.355;-1.09406;-0.66645;0.33598;3
+   ... ___301 lines omitted___ ...   
+MAGN;1.513;17288.850;-7.50000;-39.84000;-29.46000;3
+PRES;1.513;17288.850;1001.5056;3
+
+Trial running, 8.892 seconds to timeout
+Waiting for 1.4s...
+
+
+==>  GET https://evaal.aaloa.org/evaalapi/onlinedemo/nextdata?position=2.1,2.2,2.3 --> 200
+GYRO;1.516;17288.850;-1.55710;-0.81001;-1.17225;3
+ACCE;1.519;17288.854;-7.44118;2.17872;8.49463;3
+   ... ___305 lines omitted___ ...   
+ACCE;2.013;17289.356;4.13000;2.16196;4.07493;3
+GYRO;2.014;17289.352;-0.83017;2.51432;1.97309;3
+
+Trial running, 8.884 seconds to timeout
+Waiting for 1.4s...
+
+
+==>  GET https://evaal.aaloa.org/evaalapi/onlinedemo/nextdata?position=3.1,3.2,3.3 --> 200
+MAGN;2.019;17289.357;-1.98000;-31.86000;-40.56000;3
+GYRO;2.020;17289.357;-0.89064;2.53081;1.94561;3
+   ... ___307 lines omitted___ ...   
+ACCE;2.513;17289.857;-6.97670;5.80594;15.88313;3
+GYRO;2.514;17289.853;2.54548;-1.88880;-1.36284;3
+
+Trial running, 8.893 seconds to timeout
+Waiting for 1.4s...
+
+
+==>  GET https://evaal.aaloa.org/evaalapi/onlinedemo/nextdata?position=4.1,4.2,4.3 --> 200
+MAGN;2.519;17289.858;-18.18000;-18.00000;-41.40000;3
+GYRO;2.520;17289.858;2.64688;-1.79167;-1.14843;3
+   ... ___301 lines omitted___ ...   
+ACCE;3.012;17290.356;5.50666;7.58004;6.70616;3
+GYRO;3.013;17290.352;-1.78189;0.76908;0.23274;3
+
+Trial running, 8.884 seconds to timeout
+Waiting for 1.4s...
+
+
+==>  GET https://evaal.aaloa.org/evaalapi/onlinedemo/nextdata?position=5.1,5.2,5.3 --> 200
+MAGN;3.018;17290.357;-0.18000;-28.32000;-42.90000;3
+GYRO;3.019;17290.357;-1.72142;0.69089;0.27184;3
+   ... ___301 lines omitted___ ...   
+MAGN;3.513;17290.850;-4.08000;-20.46000;-47.10000;3
+PRES;3.514;17290.850;1001.4971;3
+
+Trial running, 8.896 seconds to timeout
+Waiting for 1.4s...
+
+You can get the list of estimates set so far at any moment,
+even though this is mostly useful at the end of trial.
+Here is how it looks after setting 5 estimates:
+
+==>  GET https://evaal.aaloa.org/evaalapi/onlinedemo/estimates --> 200
+pts,c,h,s,pos
+0.015,0.000,0.000,15.000,10.422057;43.718278;1
+1.015,1693924531.882,0.500,7.448,1.1,1.2,1.3
+1.515,1693924533.383,0.500,7.447,2.1,2.2,2.3
+2.015,1693924534.879,0.500,7.451,3.1,3.2,3.3
+2.515,1693924536.380,0.500,7.450,4.1,4.2,4.3
+3.015,1693924537.878,0.500,7.451,5.1,5.2,5.3
+
+The timestamp of the first line is that of the first line of sensor data,
+and the position of the first line is the initial position.
+Parsing the last estimate line we get:
+{'pts': 3.015, 'c': 1693924537.878, 'h': 0.5, 's': 7.451, 'pos': '5.1,5.2,5.3'}
+Trial running, 7.392 seconds to timeout
+Waiting for 0.0s...
+
+You can get a log of the trial session, including all received data.
+This is mostly useful at end of trial.  Here is how it looks at this point:
+
+==>  GET https://evaal.aaloa.org/evaalapi/onlinedemo/log --> 200
+2023-09-05T14:35:21.329 ================ Creating trial 'onlinedemo'
+state: 0.000,-1.000,3.000,15.000,0.000,0.000,0.000,10.422057;43.718278;1
+2023-09-05T14:35:21.329 <-- 146.48.81.102, evaal.aaloa.org/evaalapi/onlinedemo/nextdata?horizon=1
+2023-09-05T14:35:21.332 --> 200, trialts=1.015 rem=17.997
+ACCE;0.015;17287.341;-2.64559;8.69813;2.78446;3
+GYRO;0.016;17287.337;0.27428;-1.10933;-0.18998;3
+MAGN;0.016;17287.342;7.56000;-26.28000;-39.84000;3
+GYRO;0.016;17287.342;0.17776;-1.35429;-0.19364;3
+ACCE;0.017;17287.346;-2.82995;8.87052;2.36547;3
+AHRS;0.017;17287.346;51.891617;31.498898;-54.021839;0.48601067;0.02620481;-0.28725025;3
+ACCE;0.017;17287.351;-2.96402;9.06684;2.32716;3
+GYRO;0.017;17287.347;0.09774;-1.57725;-0.19792;3
+   ... ___2180 lines omitted___ ...   
+AHRS;3.507;17290.844;46.725998;-11.122733;1.044123;0.39548278;-0.08536617;-0.03010414;3
+ACCE;3.507;17290.849;-2.40857;0.73741;3.57694;3
+GYRO;3.508;17290.845;-3.84906;0.36285;-0.14600;3
+MAGN;3.513;17290.850;-4.08000;-20.46000;-47.10000;3
+PRES;3.514;17290.850;1001.4971;3
+
+2023-09-05T14:35:37.933 <-- 146.48.81.102, evaal.aaloa.org/evaalapi/onlinedemo/state?
+2023-09-05T14:35:37.933 --> 200, trialts=3.515 rem=8.896
+3.515,8.896,3.000,15.000,1693924537.878,0.500,3.015,5.1,5.2,5.3
+2023-09-05T14:35:39.436 <-- 146.48.81.102, evaal.aaloa.org/evaalapi/onlinedemo/state?
+2023-09-05T14:35:39.437 --> 200, trialts=3.515 rem=7.392
+3.515,7.392,3.000,15.000,1693924537.878,0.500,3.015,5.1,5.2,5.3
+
+The auto onlinedemo EvaalaAPI demo stops here
+
+################################################################
+# Running auto offlinedemo EvaalaAPI demo
+################################################################
+
+Let's start by reloading it to be sure.
+Will get an error if we work with a scoring (non-reloadable) trial which had already been run
+
+==>  GET https://evaal.aaloa.org/evaalapi/offlinedemo/reload --> 200
+0.000,-2.000,0.000,50.000,0.000,0.000,0.000,10.422057;43.718278;1
+
+For official trials, this reload step must be skipped
+
+First, check the state of the trial
+
+==>  GET https://evaal.aaloa.org/evaalapi/offlinedemo/state --> 200
+0.000,-2.000,0.000,50.000,0.000,0.000,0.000,10.422057;43.718278;1
+
+The return code is the trial state, whose meaning is:
+{'trialts': 0.0, 'rem': -2.0, 'V': 0.0, 'S': 50.0, 'p': 0.0, 'h': 0.0, 'pts': 0.0, 'pos': '10.422057;43.718278;1'}
+'trialts' is 0, because the trial has not started, and in fact
+'rem' is -2, meaning that the trial has not started yet and
+'pos' is set to the initial position
+
+Trial not started
+Waiting for 10.0s...
+
+We do the first pass for an offline trial, which is to get all data at once.
+
+==>  GET https://evaal.aaloa.org/evaalapi/offlinedemo/nextdata?offline --> 200
+ACCE;0.015;17287.341;-2.64559;8.69813;2.78446;3
+GYRO;0.016;17287.337;0.27428;-1.10933;-0.18998;3
+   ... ___82992 lines omitted___ ...   
+AHRS;135.222;17422.564;57.154442;18.338755;169.192139;-0.09484505;0.48331052;0.87027705;3
+ACCE;135.224;17422.569;-1.96803;9.16261;2.98078;3
+
+Trial running, 45.851 seconds to timeout
+Waiting for 10.0s...
+
+You can freely intermix "state" requests with the flow of "nextdata"
+requests.  This may be useful for consistency check, including timeout checks.  This is
+possible by looking at the state of the trial:
+
+==>  GET https://evaal.aaloa.org/evaalapi/offlinedemo/state --> 200
+0.015,35.801,0.000,50.000,1693924549.727,-2.000,0.000,10.422057;43.718278;1
+
+The return code is the trial state, whose meaning is:
+{'trialts': 0.015, 'rem': 35.801, 'V': 0.0, 'S': 50.0, 'p': 1693924549.727, 'h': -2.0, 'pts': 0.0, 'pos': '10.422057;43.718278;1'}
+'trialts' is the trial timestamp
+'rem' is the remaining time until timeout
+
+Trial running, 35.751 seconds to timeout
+Waiting for 10.0s...
+
+We do the second and last pass of an offline trial, which is to send all estimates at once.
+
+==>  POST /estimates --> 201
+Estimates received
+
+Trial running, 25.698 seconds to timeout
+Waiting for 0.7s...
+
+You can get the list of estimates sent, for a check:
+
+==>  GET https://evaal.aaloa.org/evaalapi/offlinedemo/estimates --> 200
+pts,c,h,s,pos
+0.015,0.000,0.000,50.000,10.422057;43.718278;1
+1.000,1693924574.029,-1.000,25.698,1.1,1.2,1.3
+2.000,1693924574.029,-1.000,25.698,2.1,2.2,2.3
+3.000,1693924574.029,-1.000,25.698,3.1,3.2,3.3
+4.000,1693924574.029,-1.000,25.698,4.1,4.2,4.3
+5.000,1693924574.029,-1.000,25.698,5.1,5.2,5.3
+
+The timestamp of the first line is that of the first line of sensor data,
+and the position of the first line is the initial position.
+Parsing the last estimate line we get:
+{'pts': 5.0, 'c': 1693924574.029, 'h': -1.0, 's': 25.698, 'pos': '5.1,5.2,5.3'}
+Trial running, 25.698 seconds to timeout
+Waiting for 0.7s...
+
+You can get a log of the trial session, including all received data.
+This is mostly useful at end of trial.  Here is how it looks at this point:
+
+==>  GET https://evaal.aaloa.org/evaalapi/offlinedemo/log --> 200
+2023-09-05T14:35:49.726 ================ Creating trial 'offlinedemo'
+state: 0.000,-2.000,0.000,50.000,0.000,0.000,0.000,10.422057;43.718278;1
+2023-09-05T14:35:49.726 <-- 146.48.81.102, evaal.aaloa.org/evaalapi/offlinedemo/nextdata?offline
+2023-09-05T14:35:50.049 --> 200, trialts=0.015 rem=49.677
+ACCE;0.015;17287.341;-2.64559;8.69813;2.78446;3
+GYRO;0.016;17287.337;0.27428;-1.10933;-0.18998;3
+MAGN;0.016;17287.342;7.56000;-26.28000;-39.84000;3
+GYRO;0.016;17287.342;0.17776;-1.35429;-0.19364;3
+ACCE;0.017;17287.346;-2.82995;8.87052;2.36547;3
+AHRS;0.017;17287.346;51.891617;31.498898;-54.021839;0.48601067;0.02620481;-0.28725025;3
+ACCE;0.017;17287.351;-2.96402;9.06684;2.32716;3
+GYRO;0.017;17287.347;0.09774;-1.57725;-0.19792;3
+   ... ___83011 lines omitted___ ...   
+0.015,45.851,0.000,50.000,1693924549.727,-2.000,0.000,10.422057;43.718278;1
+2023-09-05T14:36:03.923 <-- 146.48.81.102, evaal.aaloa.org/evaalapi/offlinedemo/state?
+2023-09-05T14:36:03.925 --> 200, trialts=0.015 rem=35.801
+0.015,35.801,0.000,50.000,1693924549.727,-2.000,0.000,10.422057;43.718278;1
+2023-09-05T14:36:03.976 <-- 146.48.81.102, evaal.aaloa.org/evaalapi/offlinedemo/state?
+2023-09-05T14:36:03.976 --> 200, trialts=0.015 rem=35.751
+0.015,35.751,0.000,50.000,1693924549.727,-2.000,0.000,10.422057;43.718278;1
+2023-09-05T14:36:14.028 <-- 146.48.81.102, evaal.aaloa.org/evaalapi/offlinedemo/estimates?
+2023-09-05T14:36:14.030 --> 201, trialts=0.015 rem=1.394
+Estimates received
+2023-09-05T14:36:14.030 ================ Trial finished normally
+
+
+The auto offlinedemo EvaalaAPI demo stops here
+

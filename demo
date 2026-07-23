@@ -1,0 +1,209 @@
+#! /usr/bin/env -S python3 -O
+#! /usr/bin/env -S python3
+
+# Core packages
+import os
+import sys
+import lzma
+import time
+
+# Extension packages
+import requests
+from parse import parse
+import yaml
+
+from evaalapi import statefmt, estfmt
+
+server = "https://evaal.aaloa.org/evaalapi/"
+trialnames = ("onlinedemo", "offlinedemo")
+
+def do_get (req, n=2):
+    r = requests.get(server+trialname+req)
+    print("\n==>  GET " + server+trialname+req + " --> " + str(r.status_code))
+    if False and r.headers['content-type'].startswith("application/x-xz"):
+        l = lzma.decompress(r.content).decode('ascii').splitlines()
+    else:
+        l = r.text.splitlines()
+    if len(l) <= 2*n+1:
+        print(r.text + '\n')
+    else:
+        print('\n'.join(l[:n]
+                        + ["   ... ___%d lines omitted___ ...   " % len(l)]
+                        + l[-n:] + [""]))
+    return(r)
+
+def do_post (req, postdata, n=2):
+    r = requests.post(server+trialname+req, data=postdata,
+                      headers={'Content-type': 'text/csv; charset=us-ascii'})
+    print("\n==>  POST " + req + " --> " + str(r.status_code))
+    if False and r.headers['content-type'].startswith("application/x-xz"):
+        l = lzma.decompress(r.content).decode('ascii').splitlines()
+    else:
+        l = r.text.splitlines()
+    if len(l) <= 2*n+1:
+        print(r.text + '\n')
+    else:
+        print('\n'.join(l[:n]
+                        + ["   ... ___%d lines omitted___ ...   " % len(l)]
+                        + l[-n:] + [""]))
+    return(r)
+
+def input_or_sleep (maxw):
+    r = requests.get(server+trialname+"/state")
+    s = parse(statefmt, r.text)
+    trialts = s['trialts']
+    rem = s['rem']
+    if rem > 0:
+        print("Trial running, %.3f seconds to timeout" % rem)
+    else:
+        if trialts == 0:
+            print("Trial not started")
+        else:                           # trialts < 0
+            print("Trial timed out %f seconds ago" % -rem)
+        rem = 0
+    if interactive:
+        input("Press Enter to proceed\n")
+    else:
+        if rem > 0:
+            w = min(maxw, max(0, rem-s['S']/2))
+        else:
+            w = maxw
+        print("Waiting for %.1fs...\n" % w)
+        time.sleep(w)
+
+################################################################
+## Demo
+
+def demo (interactive, maxw):
+
+    ## First of all, reload
+    print("""Let's start by reloading it to be sure.
+Will get an error if we work with a scoring (non-reloadable) trial which had already been run""")
+    r = do_get("/reload")
+
+    ## Check initial state
+    print("First, check the state of the trial")
+    r = do_get("/state")
+    print("The return code is the trial state, whose meaning is:")
+    s = parse(statefmt, r.text); print(s.named)
+    print("""'trialts' is 0, because the trial has not started, and in fact
+'rem' is %d, meaning that the trial has not started yet and
+'pos' is set to the initial position
+""" % s['rem'])
+
+    ## Get data
+    input_or_sleep(maxw)
+
+    ## Online trial: get first 1s worth of data
+    if trialname in ('onlinedemo'):
+        print("""This is the first data we request, and we are at the start of trial,
+where the position is known, so we do not bother sending a position estimate
+and moreover we ask for a longer-than-usual horizon, that is, 1s""")
+        r = do_get("/nextdata?horizon=1")
+
+    ## Offline trial: get all data at once
+    else:
+        print("We do the first pass for an offline trial, which is to get all data at once.")
+        r = do_get("/nextdata?offline")
+
+    ## Look at remaining time
+    input_or_sleep(maxw)
+    print("""You can freely intermix "state" requests with the flow of "nextdata"
+requests.  This may be useful for consistency check, including timeout checks.  This is
+possible by looking at the state of the trial:""")
+    r = do_get("/state")
+    print("The return code is the trial state, whose meaning is:")
+    s = parse(statefmt, r.text); print(s.named)
+    print("""'trialts' is the trial timestamp
+'rem' is the remaining time until timeout
+""")
+    
+    ## Set estimates
+    input_or_sleep(maxw)
+
+    ## Online trial: send estimates one at a time
+    if trialname in ('onlinedemo'):
+        print("""From now on we keep sending an estimate and ask for new data
+in steps of 0.5s.  Since this is the default horizon, we do not set horizon
+explicitly in the request, but we only set the estimated position.
+Note that the positions are just arbitrary numbers in this demo.""")
+        for i in range(1,6):
+            r = do_get("/nextdata?position=%.1f,%.1f,%.1f" % (i+.1, i+.2, i+.3))
+            input_or_sleep(maxw)
+
+    ## Offline trial: send all estimates at once
+    else:
+        print("We do the second and last pass of an offline trial, which is to send all estimates at once.")
+        estdata = ""                    # prepare timestamped data to send
+        for i in range(1,6):
+            estdata += "%.3f,%.1f,%.1f,%.1f\n" % (i, i+.1, i+.2, i+.3)
+        r = do_post("/estimates", estdata)
+        input_or_sleep(maxw)
+
+    ## Get estimates
+    if trialname in ('onlinedemo'):
+        print("""You can get the list of estimates set so far at any moment,
+even though this is mostly useful at the end of trial.
+Here is how it looks after setting 5 estimates:""")
+    else:
+        print("""You can get the list of estimates sent, for a check:""")
+    r = do_get("/estimates", 3)
+    print("""The timestamp of the first line is that of the first line of sensor data,
+and the position of the first line is the initial position.
+Parsing the last estimate line we get:""")
+    s = parse(estfmt, r.text.splitlines()[-1]); print(s.named)
+
+    ## Get log
+    input_or_sleep(maxw)
+    print("""You can get a log of the trial session, including all received data.
+This is mostly useful at end of trial.  Here is how it looks at this point:""")
+    r = do_get("/log", 12)
+
+################################################################
+if __name__ == '__main__':
+    
+    if len(sys.argv) == 1:
+        print("""A demo for the EvAAL API.  Usage is
+%s auto|interactive [trial] [server]
+
+if TRIAL is omitted, the demo will run twice, first with TRIAL set to 'onlinedemo'
+and then with TRIAL set to 'offlinedemo'.
+
+If SERVER is omitted, it defaults to %s""" %
+              (sys.argv[0], server))
+        exit(1)
+    elif sys.argv[1] == 'interactive':
+        interactive = True
+    elif sys.argv[1] == 'auto':
+        interactive = False
+    else:
+        print("%s -- bad arguments: exiting" % sys.argv[0])
+        exit(1)
+
+    if len(sys.argv) > 2:
+        trialnames = (sys.argv[2],)
+
+    if len(sys.argv) > 3:
+        server = sys.argv[3]
+
+    for trialname in trialnames:
+        if trialname.startswith("TEST"):
+            trialname = trialname[4:]
+            maxw = 3
+        else:
+            maxw = 10
+
+        print("#" * 64)
+        print("# Running %s %s EvaalaAPI demo" % ("interactive" if interactive else "auto", trialname))
+        print("#" * 64 + "\n")
+        demo(interactive, maxw)
+        print("The %s %s EvaalaAPI demo stops here\n" % ("interactive" if interactive else "auto", trialname))
+
+    exit(0)
+
+
+# Local Variables:
+# mode: python
+# comment-column: 40
+# fill-column: 100
+# End:
