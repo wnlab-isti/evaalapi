@@ -25,7 +25,7 @@ from flask import Flask, abort, request, Request, Response, send_file
 from flask_compress import Compress
 
 
-revision = "$Revision: 3.10.4.1 $"[11:-2]
+revision = "$Revision: 3.10.4.3 $"[11:-2]
 source = "evaalapi.py"
 sourcedir = "source/"
 trialsdir = "trials/"
@@ -41,8 +41,8 @@ app = Flask(__name__)
 ## This is crude, probably something should be done with the app.logger
 debug = app.debug
 
-## On request, compress all text/csv responses
-app.config['COMPRESS_MIMETYPES'] = ['text/csv'];
+## Compress text responses to requests including an Accept-Encoding Http header
+app.config['COMPRESS_MIMETYPES'] = ['text/csv', 'text/html', 'text/plain']
 Compress(app)
 
 ## Useful for logging to get the originating IP when behind proxies
@@ -1319,7 +1319,7 @@ else:
     extrafiles = []
 
 if __name__ == "__main__":
-    app.run(extrafiles)
+     app.run(extrafiles)
     
 
 # Local Variables:
