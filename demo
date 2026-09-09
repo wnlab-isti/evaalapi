@@ -80,6 +80,7 @@ def demo (interactive, maxw):
     print("""Let's start by reloading it to be sure.
 Will get an error if we work with a scoring (non-reloadable) trial which had already been run""")
     r = do_get("/reload")
+    print("For official trials, this reload step must be skipped\n")
 
     ## Check initial state
     print("First, check the state of the trial")
