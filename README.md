@@ -66,7 +66,7 @@ File [evaalapi.yaml](evaalapi.yaml) contains the definition of the demo trial th
 The demo trial sensor data is available in file [trials/T03_02.txt](trials/T03_02.txt) and will be read by the local API server to answer requests from the demo program.  
 
 The [demo](demo) python program requires the following python extension packages: ```requests, parse, and PyYAML```.  
-These are provided by the virtual environment created in the [Installation instructions](#Installation-instructions) section, so the simplest way yo run the [demo](demo) program is to use it:
+These are provided by the virtual environment created in the [Installation instructions](#Installation-instructions) section, so the simplest way to run the [demo](demo) program is to use it:
 
 ```bash
         $> cd evaalapi
