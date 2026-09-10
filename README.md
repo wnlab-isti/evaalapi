@@ -12,16 +12,16 @@ The following instructions describe how to setup and start a local server and he
 
 - Open a bash terminal  
 
-- Clone the repository into a project floder <PROJECT-FOLDER>  
+- Clone the repository  
 
 ```bash
-        $> cd <PROJECT-FOLDER>
         $> git clone https://github.com/wnlab-isti/evaalapi.git
 ```
 
 - Create a virtual environment  
 
 ```bash
+        $> cd evaalapi
         $> python3 -m venv venv
 ```
 
@@ -65,13 +65,14 @@ with
 File [evaalapi.yaml](evaalapi.yaml) contains the definition of the demo trial that will be used by the [demo](demo) python program.  
 The demo trial sensor data is available in file [trials/T03_02.txt](trials/T03_02.txt) and will be read by the local API server to answer requests from the demo program.  
 
-The [demo](demo) python program requires python extension packages ```requests, parse, and PyYAML```.  
-These are provided by the virtual environment created in the [Installation instructions](#Installation-instructions) section, so the simplest way yo run the [demo](demo) program is by opening a bash terminal and typing the following lines:
+The [demo](demo) python program requires the following python extension packages: ```requests, parse, and PyYAML```.  
+These are provided by the virtual environment created in the [Installation instructions](#Installation-instructions) section, so the simplest way yo run the [demo](demo) program is to use it:
 
 ```bash
-        $> cd <PROJECT-FOLDER>
+        $> cd evaalapi
         $> source venv/bin/activate
-        $> demo auto
+        $> chmod u+x demo
+        $> ./demo auto
 ```
 
 ## Documentation
