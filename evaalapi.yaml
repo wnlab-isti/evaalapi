@@ -1,4 +1,3 @@
-# This is for compatiiblity with pre-2023 demo and can be removed
 demo:
     datafile: T03_02.txt
     commsep: '%'

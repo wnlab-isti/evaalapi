@@ -27,7 +27,7 @@ from flask_compress import Compress
 
 revision = "$Revision: 3.10.4.3 $"[11:-2]
 source = "evaalapi.py"
-sourcedir = "source/"
+sourcedir = "./"
 trialsdir = "trials/"
 globinifn = "evaalapi.yaml"
 privatefn = "private.yaml"

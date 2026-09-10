@@ -1,18 +1,78 @@
 # IPIN competition interface
 
-For official use at the [IPIN competition](https://competition.ipin-conference.org/) you need a trial name.
+This GitHub repo includes the code for the FLASK server used in the [IPIN competition](https://competition.ipin-conference.org/).  
+
+In order to participate in the competition you need to register on the competition website to one suitable track and later obtain a trial name from the track chairs.  
+
+You can also install the server on your own premises and test the server API locally.
+
+## Installation instructions
+
+The following instructions describe how to setup and start a local server and heve been tested on a Linux Ubuntu 24.04 system with Python 3.12.3.
+
+- Open a bash terminal  
+
+- Clone the repository into a project floder <PROJECT-FOLDER>  
+
+```bash
+        $> cd <PROJECT-FOLDER>
+        $> git clone https://github.com/wnlab-isti/evaalapi.git
+```
+
+- Create a virtual environment  
+
+```bash
+        $> python3 -m venv venv
+```
+
+- Activate the virtual environment  
+
+```bash
+        $> source venv/bin/activate
+```
+
+- Install project dependencies  
+
+```bash
+        $> pip install -r requirements.txt
+```
+
+- Run the FLASK server  
+
+```bash
+        $> FLASK_APP=evaalapi.py flask run --host=127.0.0.1 --port=54321
+```
+
+## Demo trial
     
-For unofficial testing you can freely use the `demo` trial, either by
-writing your own tests or by running the [demo](demo)
-program at your premises.  Calling `demo auto` produces [this output](demo-auto.out)
-on your terminal.  Calling `demo interactive` allows one to choose the timing by
-pressing Return at the terminal.
+For unofficial testing you can freely use the `demo` trial, either by writing your own tests or by running the python [demo](demo) program at your premises.  
+Calling `demo auto` produces [this output](demo-auto.out) on your terminal.  
+Calling `demo interactive` allows one to choose the timing by pressing Return at the terminal.
     
-If you want to run `demo` with an API server at your premises, you need to download
-the API server source code and the [demo configuration](evaalapi.yaml) in the
-same directory, plus the `Logfiles/01-Training/01a-Regular/T03_02.txt` file taken from
-[Indoorloc](https://indoorloc.uji.es/ipin2020track3/files/logfiles2020.zip), to be put
-under a `trials/` subdirectory.
+If you want to run `demo` with an API server at your own premises, you need to setup and start a local API server 
+as described above.  
+You also need to edit file [demo](demo) and change the server url line
+
+```python
+        server = "https://evaal.aaloa.org/evaalapi/"
+```
+with
+
+```python
+        server = "http://127.0.0.1:54321/evaalapi/"
+```
+
+File [evaalapi.yaml](evaalapi.yaml) contains the definition of the demo trial that will be used by the [demo](demo) python program.  
+The demo trial sensor data is available in file [trials/T03_02.txt](trials/T03_02.txt) and will be read by the local API server to answer requests from the demo program.  
+
+The [demo](demo) python program requires python extension packages ```requests, parse, and PyYAML```.  
+These are provided by the virtual environment created in the [Installation instructions](#Installation-instructions) section, so the simplest way yo run the [demo](demo) program is by opening a bash terminal and typing the following lines:
+
+```bash
+        $> cd <PROJECT-FOLDER>
+        $> source venv/bin/activate
+        $> demo auto
+```
 
 ## Documentation
 
@@ -21,7 +81,7 @@ You should start by carefully reading the [API complete documentation](https://e
 Once you are familiar with it, you can use the [OpenAPI description](https://evaal.aaloa.org/evaalapi/apidocs/) as a
 reference with examples.
 
-## Source code
+## Source code license
 
 Copyright 2021-2024 Francesco Potortì
     
